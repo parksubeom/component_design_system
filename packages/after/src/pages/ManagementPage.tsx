@@ -4,11 +4,13 @@ import {
   FormSelect,
   FormTextarea,
   Alert,
-  Table,
   Modal,
-  Button,
   Badge,
 } from "../components/ui";
+import { DataTable } from "../components/ui/DataTable"
+import { ActionButton as Button } from '@/components/domain/ActionButton';
+import type {  Column } from "@/components/ui/DataTable"
+import { StatusBadge } from "@/components/domain/StatusBadge";
 import { userService } from "../services/userService";
 import { postService } from "../services/postService";
 import type { User } from "../services/userService";
@@ -237,32 +239,146 @@ export const ManagementPage: React.FC = () => {
   };
 
   // 🚨 Table 컴포넌트에 로직을 위임하여 간소화
-  const renderTableColumns = () => {
+  // ✅ [핵심 변경] 컬럼 정의에서 직접 버튼을 렌더링합니다.
+  const renderTableColumns = (): Column<Entity>[] => {
+    // ✅ [Fix] 모든 ActionButton에 '컨텍스트(entityType, entity)'를 전달해야 
+    // 내부에서 variant(색상)를 자동으로 결정할 수 있습니다.
+    const renderActions = (row: Entity) => (
+      <div className="flex gap-2 flex-wrap">
+        {/* 1. 수정 버튼 (Edit) */}
+        <Button 
+          action="edit" 
+          size="sm" 
+          entityType={entityType} // ✅ 추가됨
+          entity={row}            // ✅ 추가됨
+          onClick={() => handleEdit(row)} 
+        />
+        
+        {entityType === "post" && (
+          <>
+            {/* 2. 게시 버튼 (Publish -> Success Color) */}
+            {(row as Post).status === 'draft' && (
+               <Button 
+                 action="publish" 
+                 size="sm" 
+                 entityType={entityType} // ✅ 추가됨 (이게 있어야 success로 변함)
+                 entity={row}            // ✅ 추가됨
+                 onClick={() => handleStatusAction(row.id, "publish")} 
+               />
+            )}
+
+            {/* 3. 보관 버튼 (Archive -> Secondary Color) */}
+            {(row as Post).status === 'published' && (
+               <Button 
+                 action="archive" 
+                 size="sm" 
+                 entityType={entityType} // ✅ 추가됨 (이게 있어야 secondary로 변함)
+                 entity={row}            // ✅ 추가됨
+                 onClick={() => handleStatusAction(row.id, "archive")} 
+               />
+            )}
+
+            {/* 4. 복원 버튼 (Restore -> Outline Style) */}
+            {(row as Post).status === 'archived' && (
+               <Button 
+                 action="restore" 
+                 size="sm" 
+                 entityType={entityType} // ✅ 추가됨 (이게 있어야 outline으로 변함)
+                 entity={row}            // ✅ 추가됨
+                 onClick={() => handleStatusAction(row.id, "restore")} 
+               />
+            )}
+          </>
+        )}
+        
+        {/* 5. 삭제 버튼 (Delete -> Danger Color) */}
+        {/* 이건 기존에도 잘 되고 있었습니다 */}
+        <Button 
+          action="delete" 
+          size="sm" 
+          entityType={entityType}
+          entity={row}
+          onClick={() => handleDelete(row.id)} 
+        />
+      </div>
+    );
     if (entityType === "user") {
+      // 3. User 컬럼 정의: row를 'User'로 명시
       return [
         { key: "id", header: "ID", width: "60px" },
         { key: "username", header: "사용자명", width: "150px" },
         { key: "email", header: "이메일" },
-        { key: "role", header: "역할", width: "120px" },
-        { key: "status", header: "상태", width: "120px" },
+        { 
+          key: "role", 
+          header: "역할", 
+          width: "120px",
+          render: (row: Entity) => <StatusBadge userRole={(row as User).role} /> 
+        },
+        { 
+          key: "status", 
+          header: "상태", 
+          width: "120px", 
+          render: (row: Entity) => <StatusBadge status={(row as User).status} pill />
+        },
         { key: "createdAt", header: "생성일", width: "120px" },
         { key: "lastLogin", header: "마지막 로그인", width: "140px" },
-        { key: "actions", header: "관리", width: "200px" },
+        { 
+          key: "actions", 
+          header: "관리", 
+          width: "200px", 
+          render: renderActions 
+        },
       ];
     } else {
+      // 4. Post 컬럼 정의: row를 'Post'로 명시 (여기선 Entity로 통일하고 내부 캐스팅)
       return [
         { key: "id", header: "ID", width: "60px" },
         { key: "title", header: "제목" },
         { key: "author", header: "작성자", width: "120px" },
-        { key: "category", header: "카테고리", width: "140px" },
-        { key: "status", header: "상태", width: "120px" },
-        { key: "views", header: "조회수", width: "100px" },
+        { 
+          key: "category", 
+          header: "카테고리", 
+          width: "140px",
+          render: (row: Entity) => {
+             const postRow = row as Post;
+             const variantMap: any = {
+               development: 'primary',
+               design: 'info',
+               accessibility: 'destructive'
+             };
+             return (
+               <StatusBadge 
+                 variant={variantMap[postRow.category] || 'secondary'} 
+                 pill
+               >
+                 {postRow.category}
+               </StatusBadge>
+             );
+          }
+        },
+        { 
+          key: "status", 
+          header: "상태", 
+          width: "120px",
+          render: (row: Entity) => <StatusBadge status={(row as Post).status} /> 
+        },
+        { 
+          key: "views", 
+          header: "조회수", 
+          width: "100px",
+          render: (row: Entity) => (row as Post).views?.toLocaleString() || "0"
+        },
         { key: "createdAt", header: "작성일", width: "120px" },
-        { key: "actions", header: "관리", width: "250px" },
+        { 
+          key: "actions", 
+          header: "관리", 
+          width: "250px", 
+          render: renderActions 
+        },
       ];
     }
   };
-
+   
   const stats = getStats();
 
   return (
@@ -298,41 +414,24 @@ export const ManagementPage: React.FC = () => {
               paddingBottom: "5px",
             }}
           >
-            <button
+            <Button
+              variant={entityType === "post" ? "primary" : "secondary"}
+              size="sm"
               onClick={() => setEntityType("post")}
-              style={{
-                padding: "8px 16px",
-                marginRight: "5px",
-                fontSize: "14px",
-                fontWeight: entityType === "post" ? "bold" : "normal",
-                border: "1px solid #999",
-                background: entityType === "post" ? "#1976d2" : "#f5f5f5",
-                color: entityType === "post" ? "white" : "#333",
-                cursor: "pointer",
-                borderRadius: "3px",
-              }}
             >
               게시글
-            </button>
-            <button
+            </Button>
+            <Button
+              variant={entityType === "user" ? "primary" : "secondary"}
+              size="sm"
               onClick={() => setEntityType("user")}
-              style={{
-                padding: "8px 16px",
-                fontSize: "14px",
-                fontWeight: entityType === "user" ? "bold" : "normal",
-                border: "1px solid #999",
-                background: entityType === "user" ? "#1976d2" : "#f5f5f5",
-                color: entityType === "user" ? "white" : "#333",
-                cursor: "pointer",
-                borderRadius: "3px",
-              }}
             >
               사용자
-            </button>
+            </Button>
           </div>
 
           <div>
-            <div style={{ marginBottom: "15px", textAlign: "right" }}>
+            <div className="mb-4 flex justify-end">
               <Button
                 variant="primary"
                 size="md"
@@ -522,17 +621,11 @@ export const ManagementPage: React.FC = () => {
                 overflow: "auto",
               }}
             >
-              <Table
+              <DataTable 
                 columns={renderTableColumns()}
                 data={data}
                 striped
                 hover
-                entityType={entityType}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onPublish={(id) => handleStatusAction(id, "publish")}
-                onArchive={(id) => handleStatusAction(id, "archive")}
-                onRestore={(id) => handleStatusAction(id, "restore")}
               />
             </div>
           </div>
