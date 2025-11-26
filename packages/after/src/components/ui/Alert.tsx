@@ -1,8 +1,15 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { Info, CheckCircle, AlertTriangle, XCircle, X, Circle } from "lucide-react"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import {
+  Info,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  X,
+  Circle,
+} from "lucide-react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 // -------------------------------------------------------------------------
 // 1. 스타일 정의 (CVA) - Legacy CSS Porting
@@ -16,19 +23,19 @@ const alertVariants = cva(
       variant: {
         // [Default] #f5f5f5 / #bdbdbd / #424242
         default: "bg-bum-gray-100 border-bum-gray-border text-bum-gray-700",
-        
+
         // [Info] #e3f2fd / #90caf9 / #0d47a1
         info: "bg-bum-blue-light border-bum-blue-border text-[#0d47a1]",
-        
+
         // [Success] #e8f5e9 / #81c784 / #1b5e20
         success: "bg-bum-green-light border-bum-green-border text-[#1b5e20]",
-        
+
         // [Warning] #fff3e0 / #ffb74d / #e65100
         warning: "bg-bum-orange-light border-bum-orange-border text-[#e65100]",
-        
+
         // [Error] #ffebee / #e57373 / #b71c1c
         error: "bg-bum-red-light border-bum-red-border text-[#b71c1c]",
-        
+
         // Shadcn Destructive alias (Error와 동일하게 처리)
         destructive: "bg-bum-red-light border-bum-red-border text-[#b71c1c]",
       },
@@ -37,7 +44,7 @@ const alertVariants = cva(
       variant: "default",
     },
   }
-)
+);
 
 // -------------------------------------------------------------------------
 // 2. Component Implementation (Legacy Compatible)
@@ -52,17 +59,35 @@ interface AlertProps
 }
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
-  ({ className, variant = "default", title, showIcon = true, onClose, children, ...props }, ref) => {
-    
+  (
+    {
+      className,
+      variant = "default",
+      title,
+      showIcon = true,
+      onClose,
+      children,
+      ...props
+    },
+    ref
+  ) => {
     // Variant에 따른 아이콘 결정
     const getIcon = () => {
       const iconProps = { className: "h-5 w-5 shrink-0" }; // font-size: 20px 대응
       switch (variant) {
-        case "info": return <Info {...iconProps} />;
-        case "success": return <CheckCircle {...iconProps} />;
-        case "warning": return <AlertTriangle {...iconProps} />;
-        case "error": case "destructive": return <XCircle {...iconProps} />;
-        default: return <Circle {...iconProps} className="h-5 w-5 shrink-0 fill-current" />; // Dot
+        case "info":
+          return <Info {...iconProps} />;
+        case "success":
+          return <CheckCircle {...iconProps} />;
+        case "warning":
+          return <AlertTriangle {...iconProps} />;
+        case "error":
+        case "destructive":
+          return <XCircle {...iconProps} />;
+        default:
+          return (
+            <Circle {...iconProps} className="h-5 w-5 shrink-0 fill-current" />
+          ); // Dot
       }
     };
 
@@ -93,10 +118,10 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
           </button>
         )}
       </div>
-    )
+    );
   }
-)
-Alert.displayName = "Alert"
+);
+Alert.displayName = "Alert";
 
 // -------------------------------------------------------------------------
 // 3. Sub Components (Standard Shadcn)
@@ -108,11 +133,14 @@ const AlertTitle = React.forwardRef<
   // font-weight: bold, font-size: 15px, margin-bottom: 4px
   <h5
     ref={ref}
-    className={cn("mb-1 font-bold leading-none tracking-tight text-[15px]", className)}
+    className={cn(
+      "mb-1 font-bold leading-none tracking-tight text-[15px]",
+      className
+    )}
     {...props}
   />
-))
-AlertTitle.displayName = "AlertTitle"
+));
+AlertTitle.displayName = "AlertTitle";
 
 const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
@@ -121,10 +149,13 @@ const AlertDescription = React.forwardRef<
   // font-size: 14px, line-height: 1.5
   <div
     ref={ref}
-    className={cn("text-[14px] leading-relaxed [&_p]:leading-relaxed", className)}
+    className={cn(
+      "text-[14px] leading-relaxed [&_p]:leading-relaxed",
+      className
+    )}
     {...props}
   />
-))
-AlertDescription.displayName = "AlertDescription"
+));
+AlertDescription.displayName = "AlertDescription";
 
-export { Alert, AlertTitle, AlertDescription }
+export { Alert, AlertTitle, AlertDescription };

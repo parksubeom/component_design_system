@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  FormInput,
-  FormSelect,
-  FormTextarea,
-  Alert,
-  Modal,
-} from "../components/ui";
-import { DataTable } from "../components/ui/DataTable";
+import { Alert, Modal } from "../components/ui";
+import { Card, CardStatsLabel, CardStatsValue } from "@/components/ui/Card";
+import { DataTable } from "../components/domain/DataTable";
 import { ActionButton as Button } from "@/components/domain/ActionButton";
-import type { Column } from "@/components/ui/DataTable";
+import { UserForm } from "@/components/domain/UserForm";
+import { PostForm } from "@/components/domain/PostForm";
+import type { Column } from "@/components/domain/DataTable";
 import { StatusBadge } from "@/components/domain/StatusBadge";
 import { userService } from "../services/userService";
 import { postService } from "../services/postService";
@@ -57,36 +54,11 @@ export const ManagementPage: React.FC = () => {
     }
   };
 
-  const handleCreate = async () => {
-    try {
-      if (entityType === "user") {
-        await userService.create({
-          username: formData.username,
-          email: formData.email,
-          role: formData.role || "user",
-          status: formData.status || "active",
-        });
-      } else {
-        await postService.create({
-          title: formData.title,
-          content: formData.content || "",
-          author: formData.author,
-          category: formData.category,
-          status: formData.status || "draft",
-        });
-      }
-
-      await loadData();
-      setIsCreateModalOpen(false);
-      setFormData({});
-      setAlertMessage(
-        `${entityType === "user" ? "사용자" : "게시글"}가 생성되었습니다`
-      );
-      setShowSuccessAlert(true);
-    } catch (error: any) {
-      setErrorMessage(error.message || "생성에 실패했습니다");
-      setShowErrorAlert(true);
-    }
+  const handleCloseModal = () => {
+    setIsCreateModalOpen(false);
+    setIsEditModalOpen(false);
+    setFormData({});
+    setSelectedItem(null);
   };
 
   const handleEdit = (item: Entity) => {
@@ -182,9 +154,6 @@ export const ManagementPage: React.FC = () => {
       setShowErrorAlert(true);
     }
   };
-
-  const users = data as User[];
-  const posts = data as Post[];
 
   //Table 컴포넌트에 로직을 위임하여 간소화
   const renderTableColumns = (): Column<Entity>[] => {
@@ -338,7 +307,7 @@ export const ManagementPage: React.FC = () => {
           <p className="text-gray-600 text-sm">사용자와 게시글을 관리하세요</p>
         </div>
 
-        <div className="bg-white border border-gray-200 p-2.5">
+        <Card className="bg-white border border-gray-200 p-2.5">
           <div className="mb-[15px] border-b-2 border-bum-gray-350 pb-[5px] flex gap-[5px]">
             <Button
               variant={entityType === "post" ? "primary" : "secondary"}
@@ -391,94 +360,103 @@ export const ManagementPage: React.FC = () => {
               </div>
             )}
 
-            {entityType === "user" ? (
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-2.5 mb-[15px]">
-                <div className="p-[12px_15px] rounded-[3px] border bg-bum-blue-light border-bum-blue-border">
-                  <div className="text-[12px] text-bum-gray-600 mb-1">전체</div>
-                  <div className="text-[24px] font-bold text-bum-blue-main">
-                    {users.length}
-                  </div>
-                </div>
+            {/* Stats Grid: Card Component & Map Migration */}
+            {(() => {
+              // 1. 통계 데이터 정의 (UI에 필요한 정보만 추상화)
+              const statsList =
+                entityType === "user"
+                  ? [
+                      {
+                        label: "전체",
+                        value: (data as User[]).length,
+                        color: "blue",
+                      },
+                      {
+                        label: "활성",
+                        value: (data as User[]).filter(
+                          (u) => u.status === "active"
+                        ).length,
+                        color: "green",
+                      },
+                      {
+                        label: "비활성",
+                        value: (data as User[]).filter(
+                          (u) => u.status === "inactive"
+                        ).length,
+                        color: "orange",
+                      },
+                      {
+                        label: "정지",
+                        value: (data as User[]).filter(
+                          (u) => u.status === "suspended"
+                        ).length,
+                        color: "red",
+                      },
+                      // 관리자는 회색 박스지만 텍스트는 파란색인 특수 케이스
+                      {
+                        label: "관리자",
+                        value: (data as User[]).filter(
+                          (u) => u.role === "admin"
+                        ).length,
+                        color: "gray",
+                        textColorOverride: "text-bum-blue-main",
+                      },
+                    ]
+                  : [
+                      {
+                        label: "전체",
+                        value: (data as Post[]).length,
+                        color: "blue",
+                      },
+                      {
+                        label: "게시됨",
+                        value: (data as Post[]).filter(
+                          (p) => p.status === "published"
+                        ).length,
+                        color: "green",
+                      },
+                      {
+                        label: "임시저장",
+                        value: (data as Post[]).filter(
+                          (p) => p.status === "draft"
+                        ).length,
+                        color: "orange",
+                      },
+                      {
+                        label: "보관됨",
+                        value: (data as Post[]).filter(
+                          (p) => p.status === "archived"
+                        ).length,
+                        color: "red",
+                      },
+                      {
+                        label: "총 조회수",
+                        value: (data as Post[]).reduce(
+                          (sum, p) => sum + p.views,
+                          0
+                        ),
+                        color: "gray",
+                        textColorOverride: "text-bum-gray-700",
+                      },
+                    ];
 
-                <div className="p-[12px_15px] rounded-[3px] border bg-bum-green-light border-bum-green-border">
-                  <div className="text-[12px] text-bum-gray-600 mb-1">활성</div>
-                  <div className="text-[24px] font-bold text-bum-green-main">
-                    {users.filter((u) => u.status === "active").length}
-                  </div>
+              // 2. 렌더링 (Card 컴포넌트 재사용)
+              return (
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-2.5 mb-[15px]">
+                  {statsList.map((stat, idx) => (
+                    <Card key={idx} variant="stats" color={stat.color as any}>
+                      <CardStatsLabel>{stat.label}</CardStatsLabel>
+                      <CardStatsValue
+                        color={stat.color as any}
+                        className={stat.textColorOverride}
+                      >
+                        {stat.value}
+                      </CardStatsValue>
+                    </Card>
+                  ))}
                 </div>
-
-                <div className="p-[12px_15px] rounded-[3px] border bg-bum-orange-light border-bum-orange-border">
-                  <div className="text-[12px] text-bum-gray-600 mb-1">
-                    비활성
-                  </div>
-                  <div className="text-[24px] font-bold text-bum-orange-main">
-                    {users.filter((u) => u.status === "inactive").length}
-                  </div>
-                </div>
-
-                <div className="p-[12px_15px] rounded-[3px] border bg-bum-red-light border-bum-red-border">
-                  <div className="text-[12px] text-bum-gray-600 mb-1">정지</div>
-                  <div className="text-[24px] font-bold text-bum-red-main">
-                    {users.filter((u) => u.status === "suspended").length}
-                  </div>
-                </div>
-
-                <div className="p-[12px_15px] rounded-[3px] border bg-bum-gray-light border-bum-gray-border">
-                  <div className="text-[12px] text-bum-gray-600 mb-1">
-                    관리자
-                  </div>
-
-                  <div className="text-[24px] font-bold text-bum-gray-main">
-                    {users.filter((u) => u.role === "admin").length}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-2.5 mb-[15px]">
-                <div className="p-[12px_15px] rounded-[3px] border bg-bum-blue-light border-bum-blue-border">
-                  <div className="text-[12px] text-bum-gray-600 mb-1">전체</div>
-                  <div className="text-[24px] font-bold text-bum-blue-main">
-                    {posts.length}
-                  </div>
-                </div>
-
-                <div className="p-[12px_15px] rounded-[3px] border bg-bum-green-light border-bum-green-border">
-                  <div className="text-[12px] text-bum-gray-600 mb-1">
-                    게시됨
-                  </div>
-                  <div className="text-[24px] font-bold text-bum-green-main">
-                    {posts.filter((p) => p.status === "published").length}
-                  </div>
-                </div>
-
-                <div className="p-[12px_15px] rounded-[3px] border bg-bum-orange-light border-bum-orange-border">
-                  <div className="text-[12px] text-bum-gray-600 mb-1">
-                    임시저장
-                  </div>
-                  <div className="text-[24px] font-bold text-bum-orange-main">
-                    {posts.filter((p) => p.status === "draft").length}
-                  </div>
-                </div>
-
-                <div className="p-[12px_15px] rounded-[3px] border bg-bum-red-light border-bum-red-border">
-                  <div className="text-[12px] text-bum-gray-600 mb-1">
-                    보관됨
-                  </div>
-                  <div className="text-[24px] font-bold text-bum-red-main">
-                    {posts.filter((p) => p.status === "archived").length}
-                  </div>
-                </div>
-
-                <div className="p-[12px_15px] rounded-[3px] border bg-bum-gray border-bum-gray-border">
-                  <div className="text-[12px] text-bum-gray-600 mb-1">
-                    총 조회수
-                  </div>
-                  <div className="text-[24px] font-bold text-bum-gray-700">
-                    {posts.reduce((sum, p) => sum + p.views, 0)}
-                  </div>
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             <div className="border border-gray-200 bg-white overflow-x-auto">
               <DataTable
@@ -489,293 +467,18 @@ export const ManagementPage: React.FC = () => {
               />
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => {
-          setIsCreateModalOpen(false);
-          setFormData({});
-        }}
-        title={`새 ${entityType === "user" ? "사용자" : "게시글"} 만들기`}
-        size="large"
-        showFooter
-        footerContent={
-          <>
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => {
-                setIsCreateModalOpen(false);
-                setFormData({});
-              }}
-            >
-              취소
-            </Button>
-            <Button variant="primary" size="md" onClick={handleCreate}>
-              생성
-            </Button>
-          </>
-        }
+        isOpen={isCreateModalOpen || isEditModalOpen}
+        onClose={handleCloseModal} // 생성/수정 모달 공통 사용 가능 (타이틀/핸들러만 분기하면 됨)
       >
-        <div>
+        <div className="space-y-4">
           {entityType === "user" ? (
-            <>
-              <FormInput
-                name="username"
-                value={formData.username || ""}
-                onChange={(value) =>
-                  setFormData({ ...formData, username: value })
-                }
-                label="사용자명"
-                placeholder="사용자명을 입력하세요"
-                required
-                width="full"
-                fieldType="username"
-              />
-              <FormInput
-                name="email"
-                value={formData.email || ""}
-                onChange={(value) => setFormData({ ...formData, email: value })}
-                label="이메일"
-                placeholder="이메일을 입력하세요"
-                type="email"
-                required
-                width="full"
-                fieldType="email"
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <FormSelect
-                  name="role"
-                  value={formData.role || "user"}
-                  onChange={(value) =>
-                    setFormData({ ...formData, role: value })
-                  }
-                  options={[
-                    { value: "user", label: "사용자" },
-                    { value: "moderator", label: "운영자" },
-                    { value: "admin", label: "관리자" },
-                  ]}
-                  label="역할"
-                  size="md"
-                />
-                <FormSelect
-                  name="status"
-                  value={formData.status || "active"}
-                  onChange={(value) =>
-                    setFormData({ ...formData, status: value })
-                  }
-                  options={[
-                    { value: "active", label: "활성" },
-                    { value: "inactive", label: "비활성" },
-                    { value: "suspended", label: "정지" },
-                  ]}
-                  label="상태"
-                  size="md"
-                />
-              </div>
-            </>
+            <UserForm formData={formData} setFormData={setFormData} />
           ) : (
-            <>
-              <FormInput
-                name="title"
-                value={formData.title || ""}
-                onChange={(value) => setFormData({ ...formData, title: value })}
-                label="제목"
-                placeholder="게시글 제목을 입력하세요"
-                required
-                width="full"
-                fieldType="postTitle"
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <FormInput
-                  name="author"
-                  value={formData.author || ""}
-                  onChange={(value) =>
-                    setFormData({ ...formData, author: value })
-                  }
-                  label="작성자"
-                  placeholder="작성자명"
-                  required
-                  width="full"
-                />
-                <FormSelect
-                  name="category"
-                  value={formData.category || ""}
-                  onChange={(value) =>
-                    setFormData({ ...formData, category: value })
-                  }
-                  options={[
-                    { value: "development", label: "Development" },
-                    { value: "design", label: "Design" },
-                    { value: "accessibility", label: "Accessibility" },
-                  ]}
-                  label="카테고리"
-                  placeholder="카테고리 선택"
-                  size="md"
-                />
-              </div>
-              <FormTextarea
-                name="content"
-                value={formData.content || ""}
-                onChange={(value) =>
-                  setFormData({ ...formData, content: value })
-                }
-                label="내용"
-                placeholder="게시글 내용을 입력하세요"
-                rows={6}
-              />
-            </>
-          )}
-        </div>
-      </Modal>
-
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setFormData({});
-          setSelectedItem(null);
-        }}
-        title={`${entityType === "user" ? "사용자" : "게시글"} 수정`}
-        size="large"
-        showFooter
-        footerContent={
-          <>
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => {
-                setIsEditModalOpen(false);
-                setFormData({});
-                setSelectedItem(null);
-              }}
-            >
-              취소
-            </Button>
-            <Button variant="primary" size="md" onClick={handleUpdate}>
-              수정 완료
-            </Button>
-          </>
-        }
-      >
-        <div>
-          {selectedItem && (
-            <Alert variant="info">
-              ID: {selectedItem.id} | 생성일: {selectedItem.createdAt}
-              {entityType === "post" &&
-                ` | 조회수: ${(selectedItem as Post).views}`}
-            </Alert>
-          )}
-
-          {entityType === "user" ? (
-            <>
-              <FormInput
-                name="username"
-                value={formData.username || ""}
-                onChange={(value) =>
-                  setFormData({ ...formData, username: value })
-                }
-                label="사용자명"
-                placeholder="사용자명을 입력하세요"
-                required
-                width="full"
-                fieldType="username"
-              />
-              <FormInput
-                name="email"
-                value={formData.email || ""}
-                onChange={(value) => setFormData({ ...formData, email: value })}
-                label="이메일"
-                placeholder="이메일을 입력하세요"
-                type="email"
-                required
-                width="full"
-                fieldType="email"
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <FormSelect
-                  name="role"
-                  value={formData.role || "user"}
-                  onChange={(value) =>
-                    setFormData({ ...formData, role: value })
-                  }
-                  options={[
-                    { value: "user", label: "사용자" },
-                    { value: "moderator", label: "운영자" },
-                    { value: "admin", label: "관리자" },
-                  ]}
-                  label="역할"
-                  size="md"
-                />
-                <FormSelect
-                  name="status"
-                  value={formData.status || "active"}
-                  onChange={(value) =>
-                    setFormData({ ...formData, status: value })
-                  }
-                  options={[
-                    { value: "active", label: "활성" },
-                    { value: "inactive", label: "비활성" },
-                    { value: "suspended", label: "정지" },
-                  ]}
-                  label="상태"
-                  size="md"
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <FormInput
-                name="title"
-                value={formData.title || ""}
-                onChange={(value) => setFormData({ ...formData, title: value })}
-                label="제목"
-                placeholder="게시글 제목을 입력하세요"
-                required
-                width="full"
-                fieldType="postTitle"
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <FormInput
-                  name="author"
-                  value={formData.author || ""}
-                  onChange={(value) =>
-                    setFormData({ ...formData, author: value })
-                  }
-                  label="작성자"
-                  placeholder="작성자명"
-                  required
-                  width="full"
-                />
-                <FormSelect
-                  name="category"
-                  value={formData.category || ""}
-                  onChange={(value) =>
-                    setFormData({ ...formData, category: value })
-                  }
-                  options={[
-                    { value: "development", label: "Development" },
-                    { value: "design", label: "Design" },
-                    { value: "accessibility", label: "Accessibility" },
-                  ]}
-                  label="카테고리"
-                  placeholder="카테고리 선택"
-                  size="md"
-                />
-              </div>
-              <FormTextarea
-                name="content"
-                value={formData.content || ""}
-                onChange={(value) =>
-                  setFormData({ ...formData, content: value })
-                }
-                label="내용"
-                placeholder="게시글 내용을 입력하세요"
-                rows={6}
-              />
-            </>
+            <PostForm formData={formData} setFormData={setFormData} />
           )}
         </div>
       </Modal>
