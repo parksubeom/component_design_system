@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import {
   Table,
@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 // ----------------------------------------------------------------------
 // 1. Interface Definition
 // ----------------------------------------------------------------------
-export interface Column<T> {
+export interface Column<T = any> {
   key: string;
   header: string;
   width?: string;
@@ -28,34 +28,33 @@ interface DataTableProps<T> {
   striped?: boolean;
   bordered?: boolean;
   hover?: boolean;
-  pageSize?: number; // Pagination Size
-  searchable?: boolean;
+  pageSize?: number;
   sortable?: boolean;
   onRowClick?: (row: T) => void;
   className?: string;
+  // ❌ searchable prop 삭제됨
 }
 
 // ----------------------------------------------------------------------
 // 2. Component Implementation
 // ----------------------------------------------------------------------
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export function DataTable<T extends Record<string, any>>({
   columns,
   data = [],
   striped = false,
   bordered = false,
   hover = true,
-  pageSize = 10, // ✅ Default Page Size (Legacy와 동일)
-  searchable = false,
+  pageSize = 10,
   sortable = false,
   onRowClick,
   className,
 }: DataTableProps<T>) {
   const [tableData, setTableData] = useState<T[]>(data);
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  // ❌ searchTerm state 삭제됨
 
   // 데이터 변경 시 초기화
   useEffect(() => {
@@ -63,7 +62,7 @@ export function DataTable<T extends Record<string, any>>({
   }, [data]);
 
   // --------------------------------------------------------------------
-  // Logic 1: Sorting (Legacy Logic Porting)
+  // Logic 1: Sorting
   // --------------------------------------------------------------------
   const handleSort = (columnKey: string) => {
     if (!sortable) return;
@@ -90,23 +89,15 @@ export function DataTable<T extends Record<string, any>>({
     setTableData(sorted);
   };
 
-  // --------------------------------------------------------------------
-  // Logic 2: Filtering (Legacy Logic Porting)
-  // --------------------------------------------------------------------
-  const filteredData =
-    searchable && searchTerm
-      ? tableData.filter((row) =>
-          Object.values(row).some((val) =>
-            String(val).toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        )
-      : tableData;
+  // ❌ Logic 2: Filtering (삭제됨)
+  // 검색 기능이 사라졌으므로 filteredData 변수도 필요 없습니다.
 
   // --------------------------------------------------------------------
-  // Logic 3: Pagination (Legacy Logic Porting)
+  // Logic 3: Pagination
   // --------------------------------------------------------------------
-  const totalPages = Math.ceil(filteredData.length / pageSize);
-  const paginatedData = filteredData.slice(
+  // filteredData 대신 tableData(정렬된 데이터)를 직접 사용합니다.
+  const totalPages = Math.ceil(tableData.length / pageSize);
+  const paginatedData = tableData.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
@@ -116,19 +107,7 @@ export function DataTable<T extends Record<string, any>>({
   // --------------------------------------------------------------------
   return (
     <div className={cn("space-y-4", className)}>
-      {/* Search Bar */}
-      {searchable && (
-        <div className="flex w-full max-w-sm items-center space-x-2">
-          <Input
-            type="text"
-            placeholder="검색"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-9 w-64"
-            aria-label="게시판 검색"
-          />
-        </div>
-      )}
+      {/* ❌ Search Bar UI 삭제됨 */}
 
       {/* Table Body */}
       <div className="rounded-md border border-border bg-background overflow-hidden">

@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 // -------------------------------------------------------------------------
 const cardVariants = cva(
   // Base Styles
-  "rounded-[3px] border bg-card text-card-foreground",
+  // ✅ [Fix] 다크모드 시 텍스트 흰색 통일 (dark:text-white 추가)
+  "rounded-[3px] border bg-card text-card-foreground dark:text-white",
   {
     variants: {
       variant: {
@@ -23,17 +24,17 @@ const cardVariants = cva(
         // [Flat] Gray Background, No Border (Legacy .card-flat)
         flat: "border-none shadow-none bg-muted/50",
 
-        // [Stats] 통계 카드용 (ManagementPage에서 쓰일 수 있음)
+        // [Stats] 통계 카드용
         stats: "p-4 border border-border rounded-md",
       },
-      // ✅ [Color] 배경색/테두리색 테마 (BDS Token 사용)
+      // [Color] 배경색/테두리색 테마
       color: {
         default: "bg-white border-bum-gray-300",
         blue: "bg-bum-blue-light border-bum-blue-border",
         green: "bg-bum-green-light border-bum-green-border",
         orange: "bg-bum-orange-light border-bum-orange-border",
         red: "bg-bum-red-light border-bum-red-border",
-        gray: "bg-bum-gray border-bum-gray-border",
+        gray: "bg-bum-gray-light border-bum-gray-border",
       },
     },
     defaultVariants: {
@@ -63,20 +64,24 @@ function Card({ className, variant, color, ...props }: CardProps) {
 // 3. Custom Sub-Components (For ManagementPage Stats)
 // -------------------------------------------------------------------------
 
-// 라벨: "전체", "활성" 등 (작은 회색 글씨)
+// 라벨: "전체", "활성" 등
 function CardStatsLabel({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("text-[12px] text-bum-gray-600 mb-1", className)}
+      className={cn(
+        "text-[12px] text-bum-gray-600 mb-1",
+        "dark:text-white", // ✅ 다크모드 강제 화이트
+        className
+      )}
       {...props}
     />
   );
 }
 
-// 값: "10", "5" 등 (큰 글씨)
+// 값: "10", "5" 등
 function CardStatsValue({
   className,
   color,
@@ -98,6 +103,7 @@ function CardStatsValue({
       className={cn(
         "text-[24px] font-bold",
         color ? textColors[color] : "text-bum-gray-800",
+        "dark:text-white", // ✅ 다크모드 강제 화이트 (기존 컬러 덮어씀)
         className
       )}
       {...props}
@@ -106,8 +112,7 @@ function CardStatsValue({
 }
 
 // -------------------------------------------------------------------------
-// 4. Standard Shadcn Sub-Components (유지)
-// 다른 페이지나 일반적인 카드 사용을 위해 남겨둡니다.
+// 4. Standard Shadcn Sub-Components
 // -------------------------------------------------------------------------
 
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
@@ -178,7 +183,6 @@ export {
   CardDescription,
   CardContent,
   CardAction,
-  // ✅ 새로 추가된 컴포넌트들 Export
   CardStatsLabel,
   CardStatsValue,
 };

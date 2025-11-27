@@ -5,6 +5,7 @@ import { Alert, Modal } from "../components/ui"; // index.ts export 확인 필�
 import { Card, CardStatsLabel, CardStatsValue } from "@/components/ui/Card";
 import { DataTable } from "@/components/domain/DataTable";
 import { Button } from "@/components/ui/Button"; // UI 버튼
+import { ModeToggle } from "@/components/ModeToggle";
 
 // ✅ 2. Domain Components (Adapters)
 import { ActionButton } from "@/components/domain/ActionButton";
@@ -107,7 +108,7 @@ export const ManagementPage: React.FC = () => {
             사용자와 게시글을 관리하세요
           </p>
         </div>
-
+        <ModeToggle />
         {/* Content Card */}
         <Card className="p-2.5 shadow-none border-bum-gray-300 bg-white">
           {/* Tabs */}
@@ -188,7 +189,6 @@ export const ManagementPage: React.FC = () => {
                 data={data}
                 striped
                 hover
-                searchable
                 sortable
                 pageSize={10}
               />
