@@ -41,7 +41,7 @@ jobs:
         # ❌ run: pnpm run build:deploy
         # ✅ FIX: package.json에 정의된 'build' 스크립트를 사용
         # pnpm -r build가 루트에서 실행되면 모든 패키지를 빌드합니다.
-        run: pnpm run build
+        run: pnpm --filter @front_lite_chapter3-1/after build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
