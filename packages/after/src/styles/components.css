@@ -1,9 +1,10 @@
 /* 1. Tailwind v4 엔진 로드 */
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
 
-/* 3. 테마 설정 (기존과 동일, Semantic Mapping을 사용하므로 수정 불필요) */
+/* 3. 테마 설정 (Utility Generation) */
 @theme {
   /* Semantic Colors */
   --color-border: var(--border);
@@ -42,11 +43,10 @@
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
 
-  --color-gray-solid: var(--legacy-gray-solid);
+  --color-gray-solid: var(--status-archived);
 
   /* BDS Legacy Utilities */
   --color-bum-bg-page: var(--legacy-bg-page);
-
   --color-bum-blue-main: var(--legacy-blue-main);
   --color-bum-blue-light: var(--legacy-blue-light);
   --color-bum-blue-border: var(--legacy-blue-border);
@@ -66,8 +66,6 @@
   --color-bum-red-border: var(--legacy-red-border);
   --color-bum-red-dark: var(--legacy-red-dark);
 
-  --color-bum-gray-main: var(--legacy-gray-700);
-  --color-bum-gray-light: var(--legacy-gray-100);
   --color-bum-gray-200: var(--legacy-gray-200);
   --color-bum-gray-300: var(--legacy-gray-300);
   --color-bum-gray-350: var(--legacy-gray-350);
@@ -94,7 +92,7 @@
   }
   @keyframes accordion-up {
     from {
-      height: var(--radix-accordion-content-height);
+      height: 0;
     }
     to {
       height: 0;
@@ -105,55 +103,36 @@
 @layer base {
   :root {
     /* ==================================================================
-       LIGHT MODE (Legacy Values Kept Intact)
+       1. LIGHT MODE (Primitives & Semantics) - [건드리지 않음]
        ================================================================== */
-
-    /* Page & Background */
     --legacy-bg-page: #f0f0f0;
     --legacy-white: #ffffff;
     --legacy-black: #000000;
-
-    /* Blue (Brand) */
     --legacy-blue-main: #1775d2;
     --legacy-blue-dark: #1565c0;
     --legacy-blue-light: #e3f2fd;
     --legacy-blue-border: #90caf9;
-
-    /* Green (Success) */
     --legacy-green-main: #388e3c;
     --legacy-green-dark: #2e7d32;
     --legacy-green-light: #e8f5e9;
     --legacy-green-border: #81c784;
-
-    /* Red (Danger) */
     --legacy-red-main: #d32f2f;
     --legacy-red-dark: #c62828;
     --legacy-red-light: #ffebee;
     --legacy-red-border: #e57373;
-
-    /* Orange (Warning) */
     --legacy-orange-main: #f57c00;
     --legacy-orange-light: #fff3e0;
     --legacy-orange-border: #ffb74d;
-
-    /* Info & Grays */
     --legacy-info-main: #0288d1;
-    --legacy-gray-50: #fafafa;
     --legacy-gray-100: #f5f5f5;
     --legacy-gray-200: #e0e0e0;
     --legacy-gray-300: #dddddd;
     --legacy-gray-350: #cccccc;
     --legacy-gray-400: #999999;
-    --legacy-gray-500: #999999;
-    --legacy-gray-600: #666666;
-    --legacy-gray-border: #bdbdbd;
-    --legacy-gray-700: #424242;
     --legacy-gray-800: #333333;
     --legacy-gray-solid: #757474;
-
     --legacy-radius: 0.25rem;
 
-    /* Semantic Mapping (Light) */
     --background: var(--legacy-white);
     --foreground: var(--legacy-gray-800);
     --card: var(--legacy-white);
@@ -183,105 +162,90 @@
   }
 
   /* ==================================================================
-     DARK MODE (A11y Optimized)
-     * 접근성 원칙: 배경은 어둡게, 텍스트는 밝게, 테두리는 은은하게
-     * 눈부심 방지를 위해 Pure Black 대신 Slate-950 계열 사용
-     * 색상 대비율(Contrast Ratio) 4.5:1 이상 확보 목표
+     DARK MODE (A11y Optimized - Bright Surface / Dark Text)
      ================================================================== */
   .dark {
-    /* [Base Surfaces] 깊이감 있는 어두운 배경 */
-    --background: #020817; /* Slate 950 */
-    --foreground: #f8fafc; /* Slate 50 */
-
-    /* Page Background: 카드와 구분되도록 더 어둡게 */
-    --legacy-bg-page: #0f172a; /* Slate 900 */
+    /* 1. Base Surfaces (Page is Dark, Content is Lighter) */
+    --background: #020817; /* Page BG: Very Dark Slate */
+    --foreground: var(--legacy-white); /* Page Text: Light */
 
     /* Card & Popover: 배경보다 한 단계 밝아 위계 표현 */
     --card: #1e293b; /* Slate 800 */
-    --card-foreground: #f8fafc;
+    --card-foreground: var(--legacy-white);
     --popover: #1e293b;
-    --popover-foreground: #f8fafc;
+    --popover-foreground: var(--legacy-white);
 
-    /* [Actions] */
-    /* Primary: 어두운 배경에서 잘 보이도록 Blue 400~500 계열 사용 (너무 쨍한 Blue 600 지양) */
-    --primary: #60a5fa; /* Blue 400 */
-    --primary-foreground: #0f172a; /* Dark Text for contrast */
+    /* ✅ [Primary/Action Inversion] Button/Input BG is Bright, Text is Dark */
+    --primary: var(--legacy-white); /* Primary BG: White */
+    --primary-foreground: var(
+      --legacy-blue-dark
+    ); /* Primary Text: Dark Blue (#1565c0) */
 
-    /* Secondary: 다크모드에서는 짙은 회색이 보조 역할 */
-    --secondary: #334155; /* Slate 700 */
-    --secondary-foreground: #f8fafc;
+    /* Input/Border Surface Overrides */
+    --input: var(--legacy-white); /* Input BG is White */
+    --border: var(--legacy-gray-300); /* Border remains light gray */
+    --ring: var(--legacy-blue-main);
 
-    /* Muted & Accent */
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8; /* Slate 400 */
-    --accent: #1e293b;
-    --accent-foreground: #f8fafc;
+    /* Secondary/Muted */
+    --secondary: var(--legacy-gray-100); /* Light Gray */
+    --secondary-foreground: var(--legacy-gray-800); /* Dark Text */
 
-    /* Destructive: 너무 밝은 빨강은 눈 아픔. 적당한 채도 유지 */
-    --destructive: #ef4444; /* Red 500 */
-    --destructive-foreground: #ffffff;
+    --muted: var(--legacy-gray-100);
+    --muted-foreground: var(--legacy-gray-400);
 
-    /* Borders & Inputs: 배경에 묻히지 않는 은은한 테두리 */
-    --border: #334155; /* Slate 700 */
-    --input: #334155;
-    --ring: #3b82f6; /* Blue 500 */
+    --accent: var(--legacy-gray-200);
+    --accent-foreground: var(--legacy-blue-main);
 
-    /* [Status Colors] */
-    /* 뱃지 텍스트는 밝게, 배경은 투명도를 주어 은은하게 */
-    --success: #4ade80; /* Green 400 */
-    --success-foreground: #022c22; /* Green 950 */
+    /* Destructive/Status Fixes */
+    --destructive: var(--legacy-red-main);
+    --destructive-foreground: var(--legacy-red-dark);
 
-    --warning: #fbbf24; /* Amber 400 */
-    --warning-foreground: #451a03; /* Amber 950 */
+    --success: var(--legacy-green-main);
+    --success-foreground: var(--legacy-green-dark);
 
-    --info: #38bdf8; /* Sky 400 */
-    --info-foreground: #082f49; /* Sky 950 */
+    --warning: var(--legacy-orange-main);
+    --warning-foreground: var(--legacy-orange-dark);
 
-    /* 보관됨 뱃지: 너무 어두우면 안 보임, 밝은 회색으로 변경 */
-    --legacy-gray-solid: #94a3b8; /* Slate 400 */
+    --info: var(--legacy-info-main);
+    --info-foreground: var(--legacy-blue-dark);
+
+    --status-archived: var(--legacy-gray-solid); /* #757474 */
 
     /* ==================================================
-       [BDS Legacy Utilities Override] - ManagementPage 통계 카드용
-       * 전략: 파스텔톤 배경(Light) -> 어두운 투명 배경(Dark)
-       * 텍스트: 짙은 색(Light) -> 밝은 색(Dark)
+       [Legacy Utilities Override] - STATS CARD FIX
+       * Card BG is White, Text is Dark for all cards
        ================================================== */
 
-    /* Blue Card (전체/관리자) */
-    --legacy-blue-light: #172554; /* Blue 950 (Deep Background) */
-    --legacy-blue-border: #1e40af; /* Blue 800 (Subtle Border) */
-    --legacy-blue-main: #60a5fa; /* Blue 400 (Readable Text) */
-    --legacy-blue-dark: #93c5fd; /* Hover Text */
+    /* Blue Card (전체) */
+    --legacy-blue-light: var(--legacy-white); /* White BG */
+    --legacy-blue-border: var(--legacy-gray-300); /* Light Border */
+    --legacy-blue-main: var(--legacy-blue-dark); /* Dark Blue Text */
 
-    /* Green Card (활성/게시됨) */
-    --legacy-green-light: #052e16; /* Green 950 */
-    --legacy-green-border: #166534; /* Green 800 */
-    --legacy-green-main: #4ade80; /* Green 400 */
-    --legacy-green-dark: #86efac;
+    /* Green Card (활성) */
+    --legacy-green-light: var(--legacy-white);
+    --legacy-green-border: var(--legacy-gray-300);
+    --legacy-green-main: var(--legacy-green-dark);
 
-    /* Orange Card (비활성/임시저장) */
-    --legacy-orange-light: #451a03; /* Amber 950 */
-    --legacy-orange-border: #9a3412; /* Amber 800 */
-    --legacy-orange-main: #fbbf24; /* Amber 400 */
+    /* Orange Card (비활성) */
+    --legacy-orange-light: var(--legacy-white);
+    --legacy-orange-border: var(--legacy-gray-300);
+    --legacy-orange-main: var(
+      --legacy-orange-main
+    ); /* Dark Orange Text (주황색은 어두운 텍스트가 더 잘보임) */
 
-    /* Red Card (정지/보관됨) */
-    --legacy-red-light: #450a0a; /* Red 950 */
-    --legacy-red-border: #991b1b; /* Red 800 */
-    --legacy-red-main: #f87171; /* Red 400 */
-    --legacy-red-dark: #fca5a5;
+    /* Red Card (정지) */
+    --legacy-red-light: var(--legacy-white);
+    --legacy-red-border: var(--legacy-gray-300);
+    --legacy-red-main: var(--legacy-red-dark); /* Dark Red Text */
 
     /* Gray Card (관리자/조회수) */
-    --legacy-gray-100: #1e293b; /* Slate 800 (Card BG) */
-    --legacy-gray-border: #334155; /* Slate 700 (Border) */
-    --legacy-gray-200: #334155; /* Hover BG */
-    --legacy-gray-300: #475569; /* Input Border */
-    --legacy-gray-350: #475569; /* Tab Border */
-
-    /* Text Colors Inversion */
-    --legacy-gray-600: #94a3b8; /* Slate 400 (Subtext) */
-    --legacy-gray-700: #cbd5e1; /* Slate 300 (Strong Text) */
-    --legacy-gray-800: #f1f5f9; /* Slate 100 (Main Text) */
+    --legacy-gray-100: var(--legacy-white); /* White BG */
+    --legacy-gray-border: var(--legacy-gray-300); /* Light Border */
+    --legacy-gray-700: var(--legacy-gray-800); /* Dark Gray Text */
+    --legacy-gray-800: var(--legacy-gray-800); /* Dark Gray Text */
   }
 
+  /* Global Styles */
   * {
     @apply border-border outline-ring/50;
   }

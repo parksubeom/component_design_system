@@ -37,12 +37,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm run build:deploy
+      - name: Build BDS (After Package)
+        # ❌ run: pnpm run build:deploy
+        # ✅ FIX: package.json에 정의된 'build' 스크립트를 사용
+        # pnpm -r build가 루트에서 실행되면 모든 패키지를 빌드합니다.
+        run: pnpm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          # packages/after/dist 경로에 최종 빌드 결과물이 있어야 합니다.
           path: packages/after/dist
 
   deploy:
