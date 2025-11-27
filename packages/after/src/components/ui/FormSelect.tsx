@@ -11,7 +11,11 @@ interface Option {
   label: string;
 }
 
-export interface FormSelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'size'> {
+export interface FormSelectProps
+  extends Omit<
+    React.SelectHTMLAttributes<HTMLSelectElement>,
+    "onChange" | "size"
+  > {
   name: string;
   value: string;
   onChange: (value: string) => void; // Legacy Interface
@@ -53,7 +57,7 @@ export const FormSelect = React.forwardRef<HTMLSelectElement, FormSelectProps>(
       md: "w-full",
       lg: "w-full",
     };
-    const containerWidth = size === 'sm' ? widthClasses.sm : 'w-full';
+    const containerWidth = size === "sm" ? widthClasses.sm : "w-full";
 
     return (
       <div className={cn("mb-4", containerWidth, className)}>
@@ -81,16 +85,14 @@ export const FormSelect = React.forwardRef<HTMLSelectElement, FormSelectProps>(
           required={required}
           // Event Adapter: ChangeEvent -> string
           onChange={(e) => onChange(e.target.value)}
-          className={cn(
-            error && "border-bum-red-main focus:ring-bum-red-main"
-          )}
+          className={cn(error && "border-bum-red-main focus:ring-bum-red-main")}
           {...props}
         >
           {/* Placeholder Option */}
           <option value="" disabled>
             {placeholder}
           </option>
-          
+
           {/* Options Mapping */}
           {options.map((option) => (
             <option key={option.value} value={option.value}>
@@ -101,10 +103,14 @@ export const FormSelect = React.forwardRef<HTMLSelectElement, FormSelectProps>(
 
         {/* Error / Helper Text */}
         {error && (
-          <p className="mt-1 text-[12px] text-bum-red-main font-sans">{error}</p>
+          <p className="mt-1 text-[12px] text-bum-red-main font-sans">
+            {error}
+          </p>
         )}
         {helpText && !error && (
-          <p className="mt-1 text-[12px] text-bum-gray-600 font-sans">{helpText}</p>
+          <p className="mt-1 text-[12px] text-bum-gray-600 font-sans">
+            {helpText}
+          </p>
         )}
       </div>
     );
