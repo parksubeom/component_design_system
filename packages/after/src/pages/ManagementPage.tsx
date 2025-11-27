@@ -61,6 +61,38 @@ export const ManagementPage: React.FC = () => {
     setSelectedItem(null);
   };
 
+   const handleCreate = async () => {
+    try {
+      if (entityType === "user") {
+        await userService.create({
+          username: formData.username,
+          email: formData.email,
+          role: formData.role || "user",
+          status: formData.status || "active",
+        });
+      } else {
+        await postService.create({
+          title: formData.title,
+          content: formData.content || "",
+          author: formData.author,
+          category: formData.category,
+          status: formData.status || "draft",
+        });
+      }
+
+      await loadData();
+      setIsCreateModalOpen(false);
+      setFormData({});
+      setAlertMessage(
+        `${entityType === "user" ? "사용자" : "게시글"}가 생성되었습니다`
+      );
+      setShowSuccessAlert(true);
+    } catch (error: any) {
+      setErrorMessage(error.message || "생성에 실패했습니다");
+      setShowErrorAlert(true);
+    }
+  };
+
   const handleEdit = (item: Entity) => {
     setSelectedItem(item);
 
@@ -154,7 +186,19 @@ export const ManagementPage: React.FC = () => {
       setShowErrorAlert(true);
     }
   };
+  const isEditMode = isEditModalOpen;
+  const entityName = entityType === "user" ? "사용자" : "게시글";
 
+  // 1. 모달 제목 (Header)
+  const modalTitle = isEditMode 
+    ? `${entityName} 수정` 
+    : `새 ${entityName} 만들기`;
+
+  // 2. 확인 버튼 텍스트 (Footer)
+  const submitLabel = isEditMode ? "수정 완료" : "생성";
+
+  // 3. 확인 버튼 함수 (Footer)
+  const handleSubmit = isEditMode ? handleUpdate : handleCreate
   //Table 컴포넌트에 로직을 위임하여 간소화
   const renderTableColumns = (): Column<Entity>[] => {
     const renderActions = (row: Entity) => (
@@ -472,9 +516,23 @@ export const ManagementPage: React.FC = () => {
 
       <Modal
         isOpen={isCreateModalOpen || isEditModalOpen}
-        onClose={handleCloseModal} // 생성/수정 모달 공통 사용 가능 (타이틀/핸들러만 분기하면 됨)
+        onClose={handleCloseModal}
+        title={modalTitle}
+        size="large"
+        
+        // Footer 설정: 함수와 텍스트만 넘김
+        onConfirm={handleSubmit}
+        confirmText={submitLabel}
       >
+        {/* Content */}
         <div className="space-y-4">
+          {isEditMode && selectedItem && (
+            <Alert variant="info">
+              ID: {selectedItem.id} | 생성일: {selectedItem.createdAt}
+              {entityType === "post" && ` | 조회수: ${(selectedItem as Post).views}`}
+            </Alert>
+          )}
+
           {entityType === "user" ? (
             <UserForm formData={formData} setFormData={setFormData} />
           ) : (
