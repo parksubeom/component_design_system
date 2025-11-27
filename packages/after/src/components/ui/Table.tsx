@@ -1,8 +1,8 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 // -------------------------------------------------------------------------
-// 1. Table Root
+// 1. Table Root (Primitives)
 // -------------------------------------------------------------------------
 interface TableProps extends React.ComponentProps<"table"> {
   striped?: boolean;
@@ -10,29 +10,26 @@ interface TableProps extends React.ComponentProps<"table"> {
   hover?: boolean;
 }
 
-function Table({ className, striped, bordered, hover = true, ...props }: TableProps) {
+function Table({ className, striped, bordered, ...props }: TableProps) {
   return (
     <div className="relative w-full overflow-x-auto table-container">
       <table
         className={cn(
-          // Base: width 100%, border-collapse, font-size 0.875rem (14px), bg-white
-          "w-full border-collapse text-[0.875rem] bg-white font-sans",
-          
-          // [Legacy Style: Striped]
-          // .table-striped tbody tr:nth-child(even) { background-color: #fafafa; }
-          striped && "[&_tbody_tr:nth-child(even)]:bg-[#fafafa]",
-          
-          // [Legacy Style: Bordered]
-          // .table-bordered { border: 1px solid rgba(0, 0, 0, 0.12); }
-          // .table-bordered th, .table-bordered td { border: 1px solid rgba(0, 0, 0, 0.12); }
-          bordered && "border border-[rgba(0,0,0,0.12)] [&_th]:border [&_th]:border-[rgba(0,0,0,0.12)] [&_td]:border [&_td]:border-[rgba(0,0,0,0.12)]",
-          
+          "w-full border-collapse text-[0.875rem] bg-background font-sans", // ✅ bg-white -> bg-background
+
+          // [Striped]: 짝수 행 배경색을 semantic token (bg-muted/50)으로 처리
+          striped && "[&_tbody_tr:nth-child(even)]:bg-muted/50",
+
+          // [Bordered]: border-border (Dark Mode에서 어두운 보더로 자동 전환)
+          bordered &&
+            "border border-border [&_th]:border [&_th]:border-border [&_td]:border [&_td]:border-border",
+
           className
         )}
         {...props}
       />
     </div>
-  )
+  );
 }
 
 // -------------------------------------------------------------------------
@@ -40,30 +37,25 @@ function Table({ className, striped, bordered, hover = true, ...props }: TablePr
 // -------------------------------------------------------------------------
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
-    <thead 
-      // .table thead { background-color: #fafafa; }
-      className={cn("bg-[#fafafa]", className)} 
-      {...props} 
+    <thead
+      // ✅ thead 배경색을 semantic token (bg-muted)으로 처리
+      className={cn("bg-muted [&_tr]:border-b", className)}
+      {...props}
     />
-  )
+  );
 }
 
-// -------------------------------------------------------------------------
-// 3. Table Body (Tbody)
-// -------------------------------------------------------------------------
+// ... TableBody, TableFooter (유지) ...
+
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return (
     <tbody
-      // .table tbody tr:last-child td { border-bottom: none; }
-      className={cn("[&_tr:last-child_td]:border-b-0", className)}
+      className={cn("[&_tr:last-child_td]:border-0", className)}
       {...props}
     />
-  )
+  );
 }
 
-// -------------------------------------------------------------------------
-// 4. Table Footer (Tfoot) - Optional (Standard Style)
-// -------------------------------------------------------------------------
 function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   return (
     <tfoot
@@ -73,91 +65,82 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
       )}
       {...props}
     />
-  )
+  );
 }
 
 // -------------------------------------------------------------------------
-// 5. Table Row (Tr)
+// 3. Table Row (Tr)
 // -------------------------------------------------------------------------
 function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
       className={cn(
-        "transition-colors data-[state=selected]:bg-muted",
-        // .table-hover tbody tr:hover { background-color: rgba(0, 0, 0, 0.04); }
-        // (hover prop은 Table 컴포넌트에서 제어하거나 기본 동작으로 둡니다. 여기선 기본 적용)
-        "hover:bg-[rgba(0,0,0,0.04)]",
+        "transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
         className
       )}
       {...props}
     />
-  )
+  );
 }
 
 // -------------------------------------------------------------------------
-// 6. Table Head Cell (Th) - Legacy CSS Applied
+// 4. Table Head Cell (Th) - Semantic Colors Applied
 // -------------------------------------------------------------------------
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       className={cn(
         // padding: 16px
-        "p-4",
-        // text-align: left
-        "text-left align-middle",
-        // font-weight: 500
-        "font-medium",
-        // font-size: 0.75rem
-        "text-[0.75rem]",
-        // color: rgba(0, 0, 0, 0.6)
-        "text-[rgba(0,0,0,0.6)]",
-        // text-transform: uppercase
-        "uppercase",
-        // letter-spacing: 0.03em
-        "tracking-[0.03em]",
-        // border-bottom: 2px solid rgba(0, 0, 0, 0.12)
-        "border-b-2 border-[rgba(0,0,0,0.12)]",
-        
-        // Checkbox alignment correction
+        "p-4 text-left align-middle",
+        // font-weight: 500, font-size: 0.75rem
+        "font-medium text-[0.75rem]",
+        // color: rgba(0, 0, 0, 0.6) -> text-muted-foreground (semantic)
+        "text-muted-foreground",
+        // text-transform: uppercase, letter-spacing: 0.03em
+        "uppercase tracking-[0.03em]",
+        // border-bottom: 2px solid rgba(0, 0, 0, 0.12) -> border-border
+        "border-b-2 border-border",
+
         "[&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
     />
-  )
+  );
 }
 
 // -------------------------------------------------------------------------
-// 7. Table Data Cell (Td) - Legacy CSS Applied
+// 5. Table Data Cell (Td) - Semantic Colors Applied
 // -------------------------------------------------------------------------
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
       className={cn(
         // padding: 16px
-        "p-4",
-        "align-middle",
-        // color: rgba(0, 0, 0, 0.87)
-        "text-[rgba(0,0,0,0.87)]",
-        // border-bottom: 1px solid rgba(0, 0, 0, 0.08)
-        "border-b border-[rgba(0,0,0,0.08)]",
-        
-        // Checkbox alignment correction
+        "p-4 align-middle",
+        // color: rgba(0, 0, 0, 0.87) -> text-foreground (semantic)
+        "text-foreground",
+        // border-bottom: 1px solid rgba(0, 0, 0, 0.08) -> border-muted
+        "border-b border-muted",
+
         "[&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
     />
-  )
+  );
 }
 
-function TableCaption({ className, ...props }: React.ComponentProps<"caption">) {
+function TableCaption({
+  className,
+  ...props
+}: React.ComponentProps<"caption">) {
   return (
     <caption
       className={cn("mt-4 text-sm text-muted-foreground", className)}
       {...props}
     />
-  )
+  );
 }
 
 export {
@@ -169,4 +152,4 @@ export {
   TableRow,
   TableCell,
   TableCaption,
-}
+};
