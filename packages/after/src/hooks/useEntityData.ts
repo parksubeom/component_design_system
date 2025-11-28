@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
 import { userService } from "@/services/userService";
 import { postService } from "@/services/postService";
@@ -14,13 +15,14 @@ export const useEntityData = () => {
 
   const loadData = useCallback(async () => {
     try {
-      const result = entityType === "user" 
-        ? await userService.getAll() 
-        : await postService.getAll();
+      const result =
+        entityType === "user"
+          ? await userService.getAll()
+          : await postService.getAll();
       setData(result);
       setError(null);
     } catch (err: any) {
-      setError("데이터를 불러오는데 실패했습니다");
+      setError(err);
     }
   }, [entityType]);
 

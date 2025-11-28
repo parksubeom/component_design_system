@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { userService } from "@/services/userService";
 import { postService } from "@/services/postService";
@@ -9,7 +10,11 @@ interface UseEntityActionsProps {
   closeModal: () => void;
 }
 
-export const useEntityActions = ({ entityType, loadData, closeModal }: UseEntityActionsProps) => {
+export const useEntityActions = ({
+  entityType,
+  loadData,
+  closeModal,
+}: UseEntityActionsProps) => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -30,7 +35,9 @@ export const useEntityActions = ({ entityType, loadData, closeModal }: UseEntity
       }
       await loadData();
       closeModal();
-      setSuccessMessage(`${entityType === "user" ? "사용자" : "게시글"}가 생성되었습니다`);
+      setSuccessMessage(
+        `${entityType === "user" ? "사용자" : "게시글"}가 생성되었습니다`
+      );
     } catch (err: any) {
       setActionError(err.message || "생성에 실패했습니다");
     }
@@ -43,7 +50,9 @@ export const useEntityActions = ({ entityType, loadData, closeModal }: UseEntity
 
       await loadData();
       closeModal();
-      setSuccessMessage(`${entityType === "user" ? "사용자" : "게시글"}가 수정되었습니다`);
+      setSuccessMessage(
+        `${entityType === "user" ? "사용자" : "게시글"}가 수정되었습니다`
+      );
     } catch (err: any) {
       setActionError(err.message || "수정에 실패했습니다");
     }
@@ -62,14 +71,18 @@ export const useEntityActions = ({ entityType, loadData, closeModal }: UseEntity
     }
   };
 
-  const handleStatusAction = async (id: number, action: "publish" | "archive" | "restore") => {
+  const handleStatusAction = async (
+    id: number,
+    action: "publish" | "archive" | "restore"
+  ) => {
     try {
       if (action === "publish") await postService.publish(id);
       else if (action === "archive") await postService.archive(id);
       else if (action === "restore") await postService.restore(id);
 
       await loadData();
-      const msg = action === "publish" ? "게시" : action === "archive" ? "보관" : "복원";
+      const msg =
+        action === "publish" ? "게시" : action === "archive" ? "보관" : "복원";
       setSuccessMessage(`${msg}되었습니다`);
     } catch (err: any) {
       setActionError(err.message || "작업에 실패했습니다");
