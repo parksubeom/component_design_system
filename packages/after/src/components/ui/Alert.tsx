@@ -12,32 +12,51 @@ import {
 import { cn } from "@/lib/utils";
 
 // -------------------------------------------------------------------------
-// 1. 스타일 정의 (CVA) - Legacy CSS Porting
+// 1. 스타일 정의 (CVA) - Dark Mode Support Added
+// Light Mode: Legacy Colors (bum-*)
+// Dark Mode: Primitive Tokens (blue-900, text-100 etc.) for High Contrast
 // -------------------------------------------------------------------------
 const alertVariants = cva(
-  // Base Styles
-  // flex, gap-2(8px), p-3(10px 12px), rounded-[3px]
   "relative w-full flex items-start gap-2 rounded-[3px] border p-[10px_12px] text-sm [&>svg]:text-current",
   {
     variants: {
       variant: {
-        // [Default] #f5f5f5 / #bdbdbd / #424242
-        default: "bg-bum-gray-100 border-bum-gray-border text-bum-gray-700",
+        // [Default] Gray
+        // Light: bg-gray-100 / border-gray-400 / text-gray-700
+        // Dark: bg-gray-800 / border-gray-700 / text-gray-100
+        default:
+          "bg-bum-gray-100 border-bum-gray-border text-bum-gray-700 " +
+          "dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100",
 
-        // [Info] #e3f2fd / #90caf9 / #0d47a1
-        info: "bg-bum-blue-light border-bum-blue-border text-[#0d47a1]",
+        // [Info] Blue
+        // Light: bg-blue-50 / border-blue-200 / text-blue-main
+        // Dark: bg-blue-900 / border-blue-800 / text-blue-100
+        info:
+          "bg-bum-blue-light border-bum-blue-border text-bum-blue-main " +
+          "dark:bg-blue-900 dark:border-blue-800 dark:text-blue-100",
 
-        // [Success] #e8f5e9 / #81c784 / #1b5e20
-        success: "bg-bum-green-light border-bum-green-border text-[#1b5e20]",
+        // [Success] Green
+        // Dark: bg-green-900 / border-green-800 / text-green-100
+        success:
+          "bg-bum-green-light border-bum-green-border text-bum-green-main " +
+          "dark:bg-green-900 dark:border-green-800 dark:text-green-100",
 
-        // [Warning] #fff3e0 / #ffb74d / #e65100
-        warning: "bg-bum-orange-light border-bum-orange-border text-[#e65100]",
+        // [Warning] Orange
+        // Dark: bg-orange-900 / border-orange-800 / text-orange-100
+        warning:
+          "bg-bum-orange-light border-bum-orange-border text-bum-orange-main " +
+          "dark:bg-orange-900 dark:border-orange-800 dark:text-orange-100",
 
-        // [Error] #ffebee / #e57373 / #b71c1c
-        error: "bg-bum-red-light border-bum-red-border text-[#b71c1c]",
+        // [Error] Red
+        // Dark: bg-red-900 / border-red-800 / text-red-100
+        error:
+          "bg-bum-red-light border-bum-red-border text-bum-red-main " +
+          "dark:bg-red-900 dark:border-red-800 dark:text-red-100",
 
-        // Shadcn Destructive alias (Error와 동일하게 처리)
-        destructive: "bg-bum-red-light border-bum-red-border text-[#b71c1c]",
+        // [Destructive] Red (Alias)
+        destructive:
+          "bg-bum-red-light border-bum-red-border text-bum-red-main " +
+          "dark:bg-red-900 dark:border-red-800 dark:text-red-100",
       },
     },
     defaultVariants: {
@@ -46,10 +65,6 @@ const alertVariants = cva(
   }
 );
 
-// -------------------------------------------------------------------------
-// 2. Component Implementation (Legacy Compatible)
-// 기존의 title, onClose, showIcon Props를 지원합니다.
-// -------------------------------------------------------------------------
 interface AlertProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof alertVariants> {
@@ -71,9 +86,8 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
     },
     ref
   ) => {
-    // Variant에 따른 아이콘 결정
     const getIcon = () => {
-      const iconProps = { className: "h-5 w-5 shrink-0" }; // font-size: 20px 대응
+      const iconProps = { className: "h-5 w-5 shrink-0" };
       switch (variant) {
         case "info":
           return <Info {...iconProps} />;
@@ -87,7 +101,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         default:
           return (
             <Circle {...iconProps} className="h-5 w-5 shrink-0 fill-current" />
-          ); // Dot
+          );
       }
     };
 
@@ -98,16 +112,11 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         className={cn(alertVariants({ variant }), className)}
         {...props}
       >
-        {/* Icon Area */}
         {showIcon && getIcon()}
-
-        {/* Content Area (flex: 1) */}
         <div className="flex-1 grid gap-1">
           {title && <AlertTitle>{title}</AlertTitle>}
           <AlertDescription>{children}</AlertDescription>
         </div>
-
-        {/* Close Button Area */}
         {onClose && (
           <button
             onClick={onClose}
@@ -123,14 +132,10 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
 );
 Alert.displayName = "Alert";
 
-// -------------------------------------------------------------------------
-// 3. Sub Components (Standard Shadcn)
-// -------------------------------------------------------------------------
 const AlertTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => (
-  // font-weight: bold, font-size: 15px, margin-bottom: 4px
   <h5
     ref={ref}
     className={cn(
@@ -146,7 +151,6 @@ const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  // font-size: 14px, line-height: 1.5
   <div
     ref={ref}
     className={cn(
@@ -159,3 +163,4 @@ const AlertDescription = React.forwardRef<
 AlertDescription.displayName = "AlertDescription";
 
 export { Alert, AlertTitle, AlertDescription };
+3;

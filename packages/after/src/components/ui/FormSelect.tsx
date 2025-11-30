@@ -66,8 +66,16 @@ export const FormSelect = React.forwardRef<HTMLSelectElement, FormSelectProps>(
           <Label
             htmlFor={elementId}
             className={cn(
-              "block mb-1.5 text-[13px] font-bold text-bum-gray-800 font-sans",
-              error && "text-bum-red-main"
+              "block mb-1.5 text-[13px] font-bold",
+
+              // ✅ [FIX 1] 기본 텍스트는 레거시 어두운 색으로 고정
+              "text-bum-gray-800",
+
+              // ✅ [FIX 2] 다크 모드에서도 어두운 색을 유지하도록 명시적으로 오버라이드
+              "dark:text-bum-gray-800",
+
+              // ✅ [FIX 3] 에러 텍스트도 다크 모드용으로 명시적 오버라이드
+              error && "text-bum-red-main dark:text-bum-red-dark"
             )}
           >
             {label}

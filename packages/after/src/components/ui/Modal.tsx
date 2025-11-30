@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,18 +13,15 @@ import { cn } from "@/lib/utils";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string; // ✅ Title 필수 (헤더가 항상 있어야 하므로)
+  title: string;
   children: React.ReactNode;
   size?: "small" | "medium" | "large";
-  
-  // Action Props
+
   onConfirm?: () => void;
   confirmText?: string;
   cancelText?: string;
 
-  // Custom Footer (Legacy support)
   footerContent?: React.ReactNode;
-  
   description?: string;
   className?: string;
 }
@@ -52,41 +49,52 @@ export const Modal: React.FC<ModalProps> = ({
     if (!open) onClose();
   };
 
-  // Scroll Lock
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "unset";
-    return () => { document.body.style.overflow = "unset"; };
+    return () => {
+      document.body.style.overflow = "unset";
+    };
   }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent 
+      <DialogContent
         className={cn(
-          "bg-white text-foreground border-border p-0 gap-0 flex flex-col font-sans",
-          "max-h-[90vh] shadow-[0px_11px_15px_-7px_rgba(0,0,0,0.2),0px_24px_38px_3px_rgba(0,0,0,0.14),0px_9px_46px_8px_rgba(0,0,0,0.12)]",
+          // ✅ [Fix] bg-white -> bg-card (다크모드 대응)
+          "bg-card text-foreground border-border p-0 gap-0 flex flex-col font-sans",
+          "max-h-[90vh]",
+          // 그림자는 유지 (다크모드에서는 배경이 어두워져서 자연스럽게 묻힘)
+          "shadow-[0px_11px_15px_-7px_rgba(0,0,0,0.2),0px_24px_38px_3px_rgba(0,0,0,0.14),0px_9px_46px_8px_rgba(0,0,0,0.12)]",
           sizeClasses[size],
           className
         )}
       >
-        {/* ✅ [Header] 항상 렌더링 */}
-        <DialogHeader className="px-6 py-4 border-b border-[rgba(0,0,0,0.12)] shrink-0 flex flex-row items-center justify-between space-y-0">
-          <DialogTitle className="text-[1.25rem] font-medium leading-none text-[rgba(0,0,0,0.87)]">
+        {/* Header */}
+        <DialogHeader
+          // ✅ [Fix] border-[rgba...] -> border-border
+          className="px-6 py-4 border-b border-border shrink-0 flex flex-row items-center justify-between space-y-0"
+        >
+          <DialogTitle
+            // ✅ [Fix] text-[rgba...] -> text-foreground
+            className="text-[1.25rem] font-medium leading-none text-foreground"
+          >
             {title}
           </DialogTitle>
-          
+
           <DialogDescription className={cn(!description && "sr-only")}>
             {description || title}
           </DialogDescription>
         </DialogHeader>
 
-        {/* ✅ [Body] Scrollable */}
-        <div className="flex-1 p-6 overflow-y-auto">
-          {children}
-        </div>
+        {/* Body */}
+        <div className="flex-1 p-6 overflow-y-auto">{children}</div>
 
-        {/* ✅ [Footer] 항상 렌더링 */}
-        <DialogFooter className="px-6 py-4 border-t border-[rgba(0,0,0,0.12)] sm:justify-end gap-2 shrink-0 bg-white">
+        {/* Footer */}
+        <DialogFooter
+          // ✅ [Fix] bg-white -> bg-card, border-[rgba...] -> border-border
+          className="px-6 py-4 border-t border-border sm:justify-end gap-2 shrink-0 bg-card"
+        >
           {footerContent ? (
             footerContent
           ) : (
@@ -94,7 +102,6 @@ export const Modal: React.FC<ModalProps> = ({
               <Button variant="secondary" size="md" onClick={onClose}>
                 {cancelText}
               </Button>
-              {/* onConfirm이 있을 때만 확인 버튼 표시 (혹은 항상 표시하고 싶다면 조건 제거) */}
               {onConfirm && (
                 <Button variant="primary" size="md" onClick={onConfirm}>
                   {confirmText}
