@@ -1,255 +1,341 @@
 # Chapter3-1. UI 컴포넌트 모듈화와 디자인 시스템
 
-## 기본과제: 레거시 디자인 시스템 분석 및 이해
+[배포링크](https://parksubeom.github.io/front_7th_chapter3-1)
+[스토리북 배포 링크](https://parksubeom.github.io/front_7th_chapter3-1/storybook)
+## 과제 목표
 
-이번 과제는 레거시 디자인 시스템의 문제점을 파악하고, 현대적인 디자인 시스템으로 마이그레이션하는 것입니다. 실무에서 자주 마주치는 일관성 없는 컴포넌트 API, 혼재된 스타일링 방식, 부족한 타입 안전성 등의 문제를 직접 경험하고 개선해봅니다.
+**레거시 코드베이스를 현대적인 디자인 시스템으로 개편하는 실무 경험**
 
-## 1. 취지
+1. 정리되지 않은 레거시 코드의 문제점 식별 및 분석
+2. TailwindCSS, shadcn/ui, CVA 등의 현대 도구 활용
+3. 일관된 디자인 토큰과 컴포넌트 API 구축
+4. UI와 비즈니스 로직이 적절한 분리된 리팩토링
 
-- **잘못된 Atomic Design Pattern 이해하기**
-  - Atomic Design의 올바른 개념과 잘못된 적용 사례 파악
-  - Atoms, Molecules, Organisms의 적절한 분리 기준 이해
-  - 컴포넌트 계층 구조의 중요성 체감
+---
 
-- **CSS로 컴포넌트 구성하면 불편한 점 이해하기**
-  - 인라인 스타일, CSS Modules, CSS-in-JS의 혼재된 사용
-  - 하드코딩된 스타일 값들의 유지보수 어려움
-  - 디자인 토큰 부재로 인한 일관성 부족
-  - 반응형 디자인 구현의 복잡성
+## Before 패키지 분석 후 After 패키지 개편
 
-- **현대적인 도구들의 필요성 체감**
-  - TailwindCSS의 유틸리티 우선 접근법 이해
-  - CVA(Class Variance Authority)를 통한 variants 패턴 학습
-  - shadcn/ui의 컴포넌트 설계 철학 이해
-  - Storybook을 통한 컴포넌트 문서화의 중요성
+### 개편 목표
 
-## 2. 프로젝트 구조
+**디자인 시스템**
+- TailwindCSS 기반 일관된 디자인 토큰 정의
+- 하드코딩 제거, 재사용 가능한 스타일 시스템 구축
+- dark mode, 반응형 등 확장 가능한 구조
 
-```
-packages/
-├── before/          # 레거시 시스템 (분석 대상)
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── atoms/      # Button, Badge
-│   │   │   ├── molecules/  # FormInput, FormSelect
-│   │   │   └── organisms/  # Header, Card, Modal, Table, Alert
-│   │   ├── pages/
-│   │   │   └── PostManagement.tsx
-│   │   └── App.tsx
-│   └── package.json
-│
-└── after/           # 현대적 디자인 시스템 (구현 목표)
-    ├── src/
-    │   ├── components/
-    │   │   └── ui/         # shadcn/ui 컴포넌트
-    │   ├── tokens/         # 디자인 토큰
-    │   ├── hooks/          # Custom Hooks
-    │   └── stories/        # Storybook stories
-    ├── .storybook/
-    └── package.json
-```
+**컴포넌트 아키텍처**
+- UI 컴포넌트는 순수하게 UI만 담당
+- 도메인 로직은 적절히 분리
+- 일관된 컴포넌트 API 설계
 
-## 3. 레거시 시스템 분석 (Before)
+### 사용할 도구
 
-### 주요 문제점
+**TailwindCSS 4.x**
+- 디자인 토큰 기반 스타일링
+- 유틸리티 클래스 활용
+- dark mode, 반응형 내장 지원
 
-#### (1) 일관성 없는 컴포넌트 API
-```typescript
-// 각 컴포넌트마다 다른 props 이름과 패턴
-<FormInput width="full" helpText="도움말" />
-<FormSelect size="md" help="다른 이름" />
-<FormTextarea variant="bordered" description="또 다른 이름" />
-```
+**shadcn/ui**
+- Radix UI 기반, 접근성 내장
+- 복사 가능한 컴포넌트 (라이브러리가 아닌 소스코드)
+- 자유로운 커스터마이징
 
-#### (2) 혼재된 스타일링 방식
-- 인라인 스타일: `style={{ padding: '10px', border: '1px solid #ccc' }}`
-- CSS Modules: `className={styles.card}`
-- 하드코딩된 색상 값: `#007bff`, `#d32f2f`
+**CVA (Class Variance Authority)**
+- 선언적 variants 패턴
+- 타입 안전한 스타일 조합
+- 조건부 스타일링 처리
 
-#### (3) 타입 안전성 부족
-- 느슨한 타입 정의
-- 수동 validation
-- 에러 처리 불일치
+**React Hook Form + Zod**
+- 선언적 폼 검증
+- 타입 안전한 스키마
+- 최소 리렌더링 최적화
 
-#### (4) 접근성 이슈
-- 불완전한 ARIA 라벨
-- 키보드 네비게이션 미비
-- 스크린 리더 지원 부족
+---
 
-## 4. 과제 목표 및 요구사항
+## 필수 과제
 
-### (1) Atomic Design Pattern - 이론과 현실의 괴리
+### 1. 디자인 시스템 구축
+- [x] TailwindCSS 설정 및 디자인 토큰 정의
+- [x] shadcn/ui 컴포넌트 설치 (Button, Input, Select, Card, Table 등)
+- [x] CVA를 활용한 variants 패턴 적용
+- [x] 일관된 스타일 시스템 구축
 
-**현재 구조 (before):**
-```
-components/
-├── atoms/      # Button, Badge
-├── molecules/  # FormInput, FormSelect
-└── organisms/  # Header, Card, Modal, Table
-```
+### 2. Before 패키지 분석
+- [x] Before 패키지 실행 및 전체 코드 탐색
+- [x] 스타일링, 컴포넌트 설계, 폼 관리 측면에서 문제점 파악
+- [x] 개선이 필요한 부분과 그 이유 정리
 
-**⚠️ 실무에서의 문제점:**
-1. **분류 기준이 모호함**
-   - Card는 atom인가 molecule인가? 내용에 따라 달라짐
-   - FormInput은 molecule이지만, 단독으로도 충분히 사용 가능
+### 3. 컴포넌트 개편
+- [x] UI와 비즈니스 로직 분리
+- [x] 순수한 UI 컴포넌트로 재구성
+- [x] 일관된 컴포넌트 API 설계
+- [x] 적절한 컴포넌트 구조 설계
 
-2. **폴더 구조가 오히려 불편함**
-   - 컴포넌트를 찾기 위해 3단계를 거쳐야 함
-   - import 경로가 길어짐: `../../../components/atoms/Button`
-   - 컴포넌트를 옮길 때마다 모든 import 수정 필요
+---
 
-3. **개발 속도 저하**
-   - "이게 atom인가 molecule인가?" 고민하는 시간 낭비
-   - 팀원마다 분류 기준이 다를 수 있음
+## 심화 과제
 
-**🎯 이번 과제의 목표:**
-- Atomic Design의 **개념 자체**를 이해하기 (컴포넌트 조합과 재사용성)
-- 하지만 **폴더 구조는 디자인 시스템과 개발구조가 다르다는 점** 이해하기
-  - shadcn/ui도 `components/ui/` 단순 구조를 사용함을 주목
+- [x] Dark Mode 완전 지원 (CSS Variables + Tailwind)
+- [x] Design Token 시스템 고도화 (색상 팔레트, 타이포그래피 스케일)
+- [x] 뷰와 비즈니스로직이 분리되도록 
 
-### (2) shadcn/ui 사용해보기
+---
 
-**학습 내용:**
-- shadcn/ui의 설계 철학 이해
-- CLI를 통한 컴포넌트 추가
-- Radix UI 기반의 접근성 구현
-- 컴포넌트 커스터마이징 방법
+## 과제 회고
 
-**구현할 컴포넌트:**
-```bash
-npx shadcn-ui@latest add button
-npx shadcn-ui@latest add input
-npx shadcn-ui@latest add select
-npx shadcn-ui@latest add form
-npx shadcn-ui@latest add card
-npx shadcn-ui@latest add table
-```
+> 과제를 진행하면서 느낀 점, 배운 점을 자유롭게 작성해주세요.
 
-### (3) TailwindCSS + CVA로 Variants 만들기
 
-**Before (문제):**
-```typescript
-// 하드코딩된 스타일
-const getButtonStyle = (variant: string) => {
-  if (variant === 'primary') return { backgroundColor: '#007bff', color: 'white' };
-  if (variant === 'secondary') return { backgroundColor: '#6c757d', color: 'white' };
-  // ...
-};
+
+### 개편 과정에서 집중한 부분 + Before 패키지에서 발견한 문제점
+
+#### 지속 가능한 아키텍처 구축
+
+이번 마이그레이션을 하면서 “값이 아니라 의미를 관리한다”는 개념을 처음 정확히 이해했다.
+이전엔 `#1976d2` 같은 Hex 코드가 프로젝트 전체에 흩어져 있어서, 색 하나 바꾸는 게 거의 불가능했다.
+
+지금은 `components.css`를 단일 소스로 두고, 모든 컴포넌트가 `--primary`, `--status-neutral` 같은 토큰을 바라보도록 구조를 정리했다.
+레거시 색상도 그대로 토큰으로 흡수해서, 앞으로 유지보수에서 완전히 주도권을 가져올 수 있게 됐다.
+
+---
+
+#### 관심사의 분리
+
+레거시 코드는 UI가 너무 똑똑했다.
+테이블이 관리자 권한을 체크하고, 버튼이 게시글 상태를 판단하고, 화면에 보이는 컴포넌트들이 도메인 로직을 다 떠안고 있었다.
+
+이번엔 이를 명확히 분리했다.
+UI(`components/ui`)는 스타일만 신경 쓰고,
+도메인(`components/domain`)은 비즈니스 로직을 책임지는 구조로 바꿨다.
+
+덕분에 shadcn 같은 UI 레이어와 로직 부분이 섞이지 않게 됐고, 각각을 독립적으로 변경할 수 있는 구조가 만들어졌다.
+이 경험이 꽤 컸다. “UI는 예쁘게, 도메인은 똑똑하게”라는 정석을 실제 코드로 구현해본 첫 순간이었다.
+
+---
+
+#### 레거시 디자인을 온전히 이식
+
+새 기술로 바꾸면 UI가 미묘하게 달라지거나, “뭔가 다르다”는 느낌이 생기기 쉽다는 걸 이번에 실감했다.
+
+이번 과제는 예쁘게 만들기가 아니라, 우리 모두의 회사에 존재할만한 레거시 코드를 마이그레이션 한다면 어떻게 할것인가? 에 대한 과제라고 생각하기 때문에 이번에는 최대한 레거시를 그대로 재현하는 데 집중했다.
+Tailwind의 JIT 모드라는것도 알게 되어서 사용해보려 했으나 그냥 Tailwind의 수치를 사용하기로 했다.
+
+“디자인 시스템을 새로 만든다고 해서 디자인까지 바뀌면 안 된다”는 사실을 정말 뼈저리게 느꼈다.
+결과적으로, 기술은 바뀌었지만 UI는 이전과 비슷하게 만들 수 있었다.
+
+---
+
+#### 선언적인 코드로 전환
+
+기존 코드는 “어떻게” 구현할지부터 적기 시작했다.
+
+```tsx
+style={{ background: role === 'admin' ? 'red' : 'blue' }}
 ```
 
-**After (목표):**
-```typescript
-import { cva, type VariantProps } from "class-variance-authority";
+이런 식으로 구현 방식을 그대로 노출하는 코드가 많았다.
+이번엔 이걸 “무엇을 의도하는가” 중심으로 바꿨다.
 
+```tsx
+<ActionButton action="delete" />
+```
+
+이렇게 의도를 먼저 적는 패턴으로 바꾸니,
+코드 자체가 문서처럼 읽히고, 동료가 내부 구현을 보지 않아도 바로 이해할 수 있는 API가 됐다.
+
+
+### 사용한 기술 스택 경험
+
+#### 디자인 시스템을 이해하게 된 과정  
+
+처음 Tailwind, 디자인 토큰, shadcn을 마주했을 때는 “그냥 스타일 도구들”이라고 생각했다.
+하지만 이번 마이그레이션을 하면서 완전히 다른 관점을 얻었다.
+특히 토큰화(Tokenization)에 대한 이해가 깊어졌는데, 이 과정은 마치 요리사가 재료를 준비하는 일과 비슷했다.
+
+---
+
+### Before: “테오 입맛”에만 맞춘 단일 요리
+
+레거시 코드에서는 이렇게 생각했다.
+
+> “테오가 좋아하는 음식은 김치찌개니까
+> 김치 + 돼지고기 + 다진마늘을 사다가
+> 테오만을 위한 김치찌개를 매번 직접 만들어야지!”
+
+즉,
+
+* 특정 상황에 맞춘 **단일 용도**의 CSS를 만들고, 색상이나 라운드 값을 그대로 적어 넣는다.
+* 컴포넌트마다 스타일이 달라서
+* 같은 김치찌개를 시켜도 맛이 매번 미묘하게 달랐다. 왜냐고? 레시피가 없으니까.
+
+---
+
+### After: 재료를 먼저 정리해두고, 주문이 들어오면 조리한다
+
+디자인시스템을 리얼월드에 빗대어 생각해보니 이해가 빨랐다.
+
+우리는 먼저 **다양한 용도의 재료를 창고에 준비해두고**,
+주문이 들어오면 Variant와 CVA를 사용해 **레시피대로 일관된 맛**을 내는 방식으로 바뀌었다.
+
+* 볶음용, 찌개용, 구이용 재료
+* 색상, radius, spacing 등 의미 기반 토큰
+* 어떤 조합으로 쓰이든 **맛(결과)이 항상 동일**
+
+이게 바로 디자인 시스템이으로 지키고자 하는 일관성이다.
+
+---
+
+### 구성 요소로 다시 보면
+
+#### 1. 재료 창고 — `components.css` (디자인 토큰)
+
+재료 창고는 말 그대로 **재료만 모아 놓는 곳**이다.
+
+```css
+:root {
+  /* “나는 그냥 #1775D2라는 색깔이야. 쓰임새는 너희가 정해.” */
+  --legacy-blue-main: #1775D2;
+
+  /* “나는 4px의 둥글기를 가진 재료야.” */
+  --radius: 0.25rem;
+}
+```
+
+* 재료는 **무엇(What)** 인지 알지만
+* 어디에 **어떻게(How)** 쓰일지는 모른다
+* 요리는 만들지 않지만, 요리에 반드시 필요한 기반 재료만 보관한다
+
+---
+
+#### 2. 요리사/레시피 — `Button.tsx` (CVA)
+
+요리사는 주문에 맞게 레시피대로 재료를 꺼낸다.
+
+```ts
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
+  // 기본 레시피: "4px 둥글기 재료를 써라"
+  "rounded-[var(--radius)] ...",
   {
     variants: {
       variant: {
-        primary: "bg-primary text-primary-foreground hover:bg-primary/90",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        // “손님이 primary를 주문하면? 이 재료로 배경을 칠해라”
+        primary: "bg-[var(--legacy-blue-main)] ...",
       },
-      size: {
-        sm: "h-9 px-3",
-        md: "h-10 px-4 py-2",
-        lg: "h-11 px-8",
-      },
-    },
-    defaultVariants: {
-      variant: "primary",
-      size: "md",
     },
   }
 );
 ```
 
-### (4) Storybook 사용해보기
+이 구조의 장점은 아주 크다.
 
-**Storybook 설정:**
-```typescript
-// Button.stories.tsx
-import type { Meta, StoryObj } from '@storybook/react';
-import { Button } from './button';
+* **재료 교체(Rebranding)**
+  “파란색을 더 진하게 바꿔야겠어요.”
+  → `components.css`에서 색 한 줄만 바꾸면 전체가 바뀜.
 
-const meta = {
-  title: 'UI/Button',
-  component: Button,
-  parameters: {
-    layout: 'centered',
-  },
-  tags: ['autodocs'],
-} satisfies Meta<typeof Button>;
+* **레시피 변경(Refactoring)**
+  “요즘은 버튼 패딩을 더 크게 쓰더라.”
+  → `Button.tsx`의 CVA만 수정하면 끝난다.
 
-export default meta;
-type Story = StoryObj<typeof meta>;
-
-export const Primary: Story = {
-  args: {
-    variant: 'primary',
-    children: 'Button',
-  },
-};
-```
-
-**학습 내용:**
-- Storybook 설정 및 실행
-- Stories 작성 방법
-- Args와 Controls 활용
-- Accessibility addon 사용
-- 컴포넌트 문서 자동 생성
-
-## 5. 과제 제출
-
-### 필수 구현 사항
-- [ ] after 패키지에 디자인 시스템 구현 완료
-- [ ] PostManagement 페이지 마이그레이션 완료
-- [ ] Storybook에 주요 컴포넌트 stories 작성
-- [ ] README에 before/after 비교 및 개선사항 문서화
-
-### 심화 구현 사항
-- [ ] Dark mode 지원
-- [ ] Dark mode toggle 버튼
-
-## 6. 그밖에 해보면 좋을 것들
-> 분량상 이번 과제에는 포함하지 않았지만, 실무에서 자주 쓰이는 패턴들입니다. 시간 여유가 된다면 도전해보세요!
-- [ ] figma 디자인 토큰 추출 후 적용
-- [ ] figma Design to Code 플러그인 혹은 MCP 사용해보기
-- [ ] figma Icon to SVG + deploy to CDN 시스템 구축 해보기
-- [ ] 복잡한 컴포넌트 직접 구현 (token, variants, 접근성) 포함
-  - ex) AutoComplete, DatePicker
-- [ ] Monorepo 디자인 시스템 패키지 구축 및 배포
-- [ ] Storybook Interaction Tests 또는 A11y addon으로 컴포넌트 품질 검증
-- [ ] React Hook Form + Zod로 Form 구현
+재료 창고와 레시피가 역할 분리되어 있어 수정 범위가 고립된다.
 
 ---
 
-**이 프로젝트를 통해 레거시 시스템의 문제점을 이해하고, 현대적인 디자인 시스템 구축 능력을 습득하세요!**
+### 내가 배운 점 — 토큰화의 진짜 의미
 
-## 참고 자료
+이번 작업을 하며 토큰화는 단순한 스타일 분리가 아니라는 걸 알았다.
+**토큰화는 마치 요리사가 “좋은 재료를 체계적으로 준비해두는 일”과 같다.**
 
-### TailwindCSS
-- [TailwindCSS 공식 문서](https://tailwindcss.com/docs)
-- [TailwindCSS v4.0 새로운 기능](https://tailwindcss.com/blog/tailwindcss-v4-alpha)
+* 좋은 재료를 잘 정리해두면
+* 어떤 주문이 들어와도
+* 항상 같은 맛, 같은 품질을 유지할 수 있다
 
-### CVA (Class Variance Authority)
-- [CVA 공식 문서](https://cva.style/docs)
-- [CVA 예제 모음](https://cva.style/docs/examples)
+디자인 시스템은 결국 **잘 정리된 재료 + 일관된 레시피**라는 걸 이번 작업에서 확실하게 느꼈다.
+그리고 토큰 + shadcn + Tailwind 조합은 자연스럽게
+**"어떻게 그릴지(How)" → "무엇을 의도하는지(What)"** 중심의 코드 작성 방식으로 나를 이끌었다.
+넓게 보면 React의 선언형 프로그래밍과 매우 비슷한 철학을 공유하고 있었다.
 
-### shadcn/ui
-- [shadcn/ui 공식 문서](https://ui.shadcn.com/)
-- [shadcn/ui Components](https://ui.shadcn.com/docs/components)
+---
 
-### Storybook
-- [Storybook 공식 문서](https://storybook.js.org/docs/react/get-started/introduction)
-- [Storybook Args와 Controls](https://storybook.js.org/docs/react/writing-stories/args)
-- [Accessibility addon](https://storybook.js.org/addons/@storybook/addon-a11y)
+#### UI와 도메인의 역할 분리
 
-### React Hook Form + Zod
-- [React Hook Form](https://react-hook-form.com/)
-- [Zod Validation](https://zod.dev/)
-- [React Hook Form + Zod 통합](https://github.com/react-hook-form/resolvers#zod)
+레거시 컴포넌트를 리팩토링할 때 가장 집중한 부분은 **관심사의 분리**였다.
 
-### Atomic Design
-- [Atomic Design Methodology](https://atomicdesign.bradfrost.com/)
-- [Atomic Design과 React](https://fe-developers.kakaoent.com/2022/220505-how-page-part-use-atomic-design-system/)
+* **UI Component(shadcn)**
+
+  * 비즈니스 로직을 전혀 모른다.
+  * 말 그대로 “어떻게 보여질지”만 고민한다.
+  * 멍청해야 하고, 그래야 재사용성이 극대화된다.
+
+* **Domain Component**
+
+  * 비즈니스 로직을 책임진다.
+  * 실제 화면 표현은 전부 UI 컴포넌트에 위임한다.
+  * 판단과 정책만 관리한다.
+
+이렇게 나누고 나니 코드 읽기가 정말 쉬워졌다.
+이전처럼 `if (role === 'admin' && status === '...')` 같은 복잡한 조건문을 해석할 필요가 없고,
+그냥 `<Button action="delete" />` 하나만 보고도 “삭제 버튼이구나” 하고 바로 이해가 된다.
+가독성이 확실하게 올라갔다.
+
+
+#### 유지보수도 단순해짐
+
+이 분리를 기준으로 유지보수 역시 명확하게 나뉘었다.
+
+* **디자인을 바꾸고 싶다?** → UI Component 수정
+* **권한/규칙을 바꾸고 싶다?** → Domain Component 수정
+
+특정 요구사항이 어느 레이어에서 해결되어야 하는지 분명해졌고,
+기능 추가나 수정 시 불필요하게 전역을 뒤지지 않아도 됐다.
+
+
+#### 이번 마이그레이션에서 배운 점들
+
+과제를 통과할지 아닐지는 모르겠지만, 그래도 이번 작업은 배운 게 배부른 챕터였다.
+
+1. **선언형 프로그래밍의 체화**
+
+   * “어떻게 구현할지”를 줄줄이 나열하는 방식에서 벗어나
+     “무엇을 의도하는지”를 코드로 표현하는 방식을 실제로 경험했다.
+
+2. **UI와 비즈니스 로직의 격리**
+
+   * UI 컴포넌트는 도메인을 몰라야 재사용성이 높아지고,
+     Domain Component는 렌더링을 UI에 위임해야 로직에 집중할 수 있다는 걸 실제 리팩토링 과정에서 체감했다.
+   * 이 분리를 통해 결합도를 낮추고, 역할 중심의 응집도를 높일 수 있었다.
+
+3. **디자인 시스템의 본질**
+
+   * 단순한 스타일 가이드가 아니라, 엔지니어링된 구조라는 걸 처음으로 이해했다.
+   * 토큰을 내가 얼마나 잘 만들었는지는 모르겠지만
+     FE 개발자로서 중요한 건 “토큰을 얼마나 잘 활용하는가”라는 걸 알게 됐고, 그 부분에 집중했다.
+     (정말 잘 정리해야 할 사람은 디자이너겠지…)
+
+4. **추상화에 대한 사고 변화**
+
+   * “코드 짧으면 장땡 아니냐?”라고 생각했던 나였지만 생각이 달라졌다.
+   * 복잡한 조건문을 계속 해석해야 하는 코드는 읽기 어렵고, 결국 AI에게 떠넘기고 싶어진다.
+   * 의미 있는 컴포넌트로 추상화해두면 코드만 읽고도 비즈니스 규칙과 도메인이 자연스럽게 드러난다.
+     이 경험이 추상화를 바라보는 관점을 완전히 바꿨다.
+
+
+
+### 어려웠던 점과 해결 방법
+
+다크 모드를 처음 적용하면서 가장 크게 마주한 문제는 **색상 대비 붕괴**였습니다. 특히 ManagementPage에서 사용하던 통계 카드와 폼 입력창은 기존 라이트 모드의 파스텔톤 색상(`bg-bum-blue-light`)을 그대로 반전시키는 방식으로는 전혀 대응되지 않았습니다.  
+반전된 색은 텍스트가 묻히거나 지나치게 눈부셔져서, 실제 사용성 측면에서 문제가 오히려 더 커졌습니다.
+
+처음에는 “다크 모드는 밝은 색 → 어두운 색, 어두운 색 → 밝은 색” 정도의 단순한 반전 규칙만 적용하면 된다고 생각했습니다. 하지만 테스트 과정에서 이 방식이 **접근성 기준(WCAG)의 대비 비율**을 충족하지 못하고, 사용자 경험을 심각하게 해칠 수 있다는 것을 깨달았습니다.
+
+그래서 단순 반전이 아니라 대비 전략(Contrast Strategy)을 세워 전반적인 색상 시스템을 재점검했습니다. 이 과정에서 가장 고민이 컸던 부분은 **Input, Button 같은 인터랙티브 요소**였습니다.  
+일반적인 다크 모드 방식(어두운 배경 + 밝은 텍스트)을 그대로 적용하면 입력값 가독성이 떨어져 실사용이 어려웠습니다.
+
+이를 해결하기 위해, 다크 모드에서도 폼 요소는 **밝은 배경 + 어두운 텍스트 구조**를 유지하도록 시멘틱 토큰을 재정의했습니다.  
+또 `Input.tsx`에서는 `dark:bg-white`, `dark:text-gray-900`을 명시적으로 오버라이딩하여, 어떤 환경에서도 안정적인 가독성을 보장하도록 했습니다.
+
+이번 작업을 통해 크게 배운 점은, **다크 모드는 단순한 스타일 변경이 아니라 접근성 문제의 연장선**이라는 것입니다.  
+색상 토큰을 정의할 때도 전역값(`--foreground`, `--background`)만 손보는 것이 아니라, Input 같은 컴포넌트가 실제로 어떻게 그 값을 사용하는지까지 고려해야 완성도 있는 디자인 시스템이 만들어진다는 점을 느꼈습니다.
+
+이번 경험은 다크 모드 구현에 대한 이해를 깊게 해준 작업이었습니다. 이 작업을 통해 다크 모드를 단순한 “테마 기능”이 아니라, 진짜 사람이 사용하는 환경으로 바라보는 시각을 갖게 되었고, 그 과정에서 많은 것을 배우게 되었습니다.
+
+
+### 리뷰받고 싶거나 질문하고 싶은 내용
